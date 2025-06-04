@@ -4,7 +4,7 @@ from pathlib import Path
 # 项目路径配置
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 安全密钥（生产环境需从环境变量获取）
+# 安全密钥
 SECRET_KEY = 'django-insecure-#79$*5p^@4&197m$1$#&9@$8%3pz#9@j%8@2%3'
 
 # 调试模式（生产环境需设置为False）
@@ -117,7 +117,7 @@ LOGOUT_REDIRECT_URL = '/'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 1209600  # 2周
 
-# 缓存配置（开发环境使用内存缓存）
+# 缓存配置
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',

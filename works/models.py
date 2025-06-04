@@ -28,6 +28,10 @@ class Work(models.Model):
     shot_date = models.DateField('拍摄日期', blank=True, null=True)
     camera_model = models.CharField('相机型号', max_length=100, blank=True)
     is_public = models.BooleanField('公开显示', default=False)
+    iso = models.IntegerField('ISO值', blank=True, null=True)
+    shutter_speed = models.CharField('快门速度', max_length=50, blank=True, null=True)
+    aperture = models.DecimalField('光圈值', max_digits=3, decimal_places=1, blank=True, null=True)
+    lens_mm = models.IntegerField('焦距(mm)', blank=True, null=True)
 
     # 多对多关系，明确指定through模型
     categories = models.ManyToManyField(Category, through='WorkCategory', verbose_name='作品分类')
@@ -39,6 +43,20 @@ class Work(models.Model):
         verbose_name = '摄影作品'
         verbose_name_plural = '摄影作品'
         ordering = ['-created_at']
+
+    # 格式化光圈显示
+    @property
+    def aperture_display(self):
+        if self.aperture:
+            return f"f/{self.aperture}"
+        return ""
+
+    # 格式化焦距显示
+    @property
+    def focal_length_display(self):
+        if self.lens_mm:
+            return f"{self.lens_mm}mm"
+        return ""
 
 
 class WorkCategory(models.Model):
