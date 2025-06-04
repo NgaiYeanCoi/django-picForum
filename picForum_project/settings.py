@@ -61,7 +61,7 @@ TEMPLATES = [
 # WSGI配置
 WSGI_APPLICATION = 'picForum_project.wsgi.application'
 
-# 数据库配置 - MySQL
+# 数据库配置
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',

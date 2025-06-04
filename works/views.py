@@ -17,9 +17,16 @@ import os
 @login_required
 def work_list(request):
     """作品列表视图"""
-    works = Work.objects.filter(photographer=request.user).order_by('-created_at')
+    search_query = request.GET.get('search','')
+    if search_query:
+        works = Work.objects.filter(
+            photographer=request.user,
+            title__icontains=search_query
+        ).order_by('-created_at')
+    else:
+        works = Work.objects.filter(photographer=request.user).order_by('-created_at')
     categories = Category.objects.all()
-    return render(request, 'works/work_list.html', {'works': works, 'categories': categories})
+    return render(request, 'works/work_list.html', {'works': works, 'categories': categories,'search_query':search_query})
 
 
 @login_required
@@ -215,7 +222,7 @@ def get_exif_info(request):
 
             if 'EXIF ExposureTime' in tags:
                 exposure = str(tags['EXIF ExposureTime'])
-                # 将分数转换为更易读的格式
+                # 将快门转换为更易读的格式
                 if '/' in exposure:
                     num, denom = exposure.split('/')
                     try:

@@ -1,3 +1,4 @@
+__author__='NgaiYeanCoi'
 def goToGithub(request):
     URL = """
     <br/>

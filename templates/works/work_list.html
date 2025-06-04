@@ -20,7 +20,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <form method="get" class="d-flex">
-                            <input type="text" name="search" placeholder="搜索作品..." class="form-control me-2">
+                            <input type="text" name="search" placeholder="搜索作品..." class="form-control me-2" value="{{ search_query }}">
                             <button type="submit" class="btn btn-primary">搜索</button>
                         </form>
                     </div>
@@ -68,6 +68,11 @@
             </div>
         </div>
         {% endfor %}
+        {% elif search_query %}
+            <div class="col-md-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <p class="card-text">结果为无！</p>
     {% else %}
         <div class="col-md-12">
             <div class="card">

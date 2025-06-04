@@ -12,7 +12,7 @@
                 <h3 class="card-title">上传新作品</h3>
             </div>
             <div class="card-body">
-           <!-- 错误显示区域 -->
+           <!-- 表单错误显示区域 -->
                 {% if form.errors %}
                     <div class="alert alert-danger">
                         <h4 class="alert-heading">表单错误</h4>
@@ -45,7 +45,7 @@
                         <label for="{{ form.image.id_for_label }}" class="form-label">作品图片</label>
                         {{ form.image }}
                         <div class="form-text">支持JPG、PNG格式，最大50MB</div>
-                        
+
                         <!-- 图片预览区域 -->
                         <div class="mt-3" id="image-preview">
                             {% if exif_info.image_preview %}
@@ -54,7 +54,7 @@
                                 <p class="text-muted">选择图片后将显示预览</p>
                             {% endif %}
                         </div>
-                        
+
                         <!-- EXIF处理 -->
                         <div id="exif-status" class="mt-2 text-muted"></div>
                     </div>
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const exifStatus = document.getElementById('exif-status');
     const form = document.querySelector('form');
     const submitButton = form.querySelector('button[type="submit"]');
-    
+
     // 获取所有表单字段
     const shotDateInput = document.getElementById('id_shot_date');
     const cameraModelInput = document.getElementById('id_camera_model');
@@ -142,19 +142,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const shutterSpeedInput = document.getElementById('id_shutter_speed');
     const apertureInput = document.getElementById('id_aperture');
     const lensMMInput = document.getElementById('id_lens_mm');
-    
+
     // 已有图片预览
     if (imagePreview && imagePreview.querySelector('img')) {
         updateExifStatus('已加载现有图片', 'success');
     }
-    
+
     imageInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         updateExifStatus('正在处理图片...', 'muted');
         resetFormFields();
-        
+
         // 显示图片预览
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -167,26 +167,26 @@ document.addEventListener('DOMContentLoaded', function() {
             imagePreview.appendChild(img);
         };
         reader.readAsDataURL(file);
-        
+
         // 发送AJAX请求获取EXIF信息
         fetchExifData(file);
     });
-    
+
     // 表单提交处理
     form.addEventListener('submit', function(e) {
         // 禁用提交按钮防止重复提交
         submitButton.disabled = true;
         submitButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 上传中...';
     });
-    
+
     // 获取EXIF数据
     function fetchExifData(file) {
         const formData = new FormData();
         formData.append('image', file);
-        
+
         // 获取CSRF令牌
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
+
         fetch('{% url 'works:get_exif_info' %}', {
             method: 'POST',
             body: formData,
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateExifStatus(`请求失败: ${error.message}`, 'danger');
         });
     }
-    
+
     // 重置表单字段
     function resetFormFields() {
         shotDateInput.value = '';
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
         apertureInput.value = '';
         lensMMInput.value = '';
     }
-    
+
     // 填充表单字段
     function fillFormFields(data) {
         if (data.shot_date) shotDateInput.value = data.shot_date;
@@ -232,16 +232,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.aperture) apertureInput.value = data.aperture;
         if (data.lens_mm) lensMMInput.value = data.lens_mm;
     }
-    
+
     // 更新EXIF状态显示
     function updateExifStatus(message, status) {
         if (!exifStatus) return;
-        
+
         exifStatus.textContent = message;
-        
+
         // 移除所有状态类
         exifStatus.className = 'mt-2';
-        
+
         // 添加新的状态类
         switch(status) {
             case 'success':
