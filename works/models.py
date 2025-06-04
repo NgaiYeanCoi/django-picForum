@@ -19,7 +19,7 @@ class Category(models.Model):
 
 
 class Work(models.Model):
-    title = models.CharField('作品标题', max_length=100, blank=True)
+    title = models.CharField('作品标题', max_length=100, blank=False, null=False)
     description = models.TextField('作品描述', blank=True)
     image = models.ImageField('作品图片', upload_to='works/%Y/%m/%d')
     photographer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='摄影师')

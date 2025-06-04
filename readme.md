@@ -67,7 +67,7 @@ DATABASES = {
 }
 ```
 #### 5.创建数据库
-- 1. 手动建表
+- 1. 手动建数据库
 ```mysql
 # photographer_portfolio可以自定义，但必须与picForum_project/settings.py保持一致
 CREATE DATABASE photographer_portfolio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
