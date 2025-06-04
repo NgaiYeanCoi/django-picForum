@@ -1,0 +1,7 @@
+pillow~=11.2.1
+Django~=5.2.1
+asgiref~=3.8.1
+sqlparse~=0.5.3
+mysqlclient~=2.2.7
+ExifRead~=3.3.1
+django-extensions~=4.1
