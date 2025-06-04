@@ -1,2 +1,268 @@
 <!-- templates/works/work_edit.html -->
 {% extends 'base.html' %}
+
+{% block title %}编辑作品{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title">编辑作品</h3>
+            </div>
+            <div class="card-body">
+                <!-- 错误显示区域 -->
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">表单错误</h4>
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">作品标题</label>
+                        {{ form.title }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">作品描述</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.image.id_for_label }}" class="form-label">作品图片:</label>
+                    <!--手动渲染控件-->
+                    <input type="file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}"
+                    class="form-control {% if form.image.errors %}is-invalid{% endif %}"
+                     {% if form.image.field.required %}required{% endif %}>
+                    <!-- 显示表单错误 -->
+                        {% if form.image.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.image.errors|join:", " }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">支持JPG、PNG格式，最大50MB</div>
+
+                        <!-- 图片预览区域 -->
+                        <div class="mt-3" id="image-preview">
+                            {% if exif_info.image_preview %}
+                                <img src="{{ exif_info.image_preview }}" alt="预览图" class="img-thumbnail" style="max-width: 300px;">
+                            {% else %}
+                                <p class="text-muted">选择图片后将显示预览</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- EXIF处理 -->
+                        <div id="exif-status" class="mt-2 text-muted"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.shot_date.id_for_label }}" class="form-label">拍摄日期</label>
+                        <input type="date" class="form-control" id="{{ form.shot_date.id_for_label }}" name="{{ form.shot_date.html_name }}" value="{{ exif_info.shot_date|date:'Y-m-d' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.camera_model.id_for_label }}" class="form-label">相机型号</label>
+                        <input type="text" class="form-control" id="{{ form.camera_model.id_for_label }}" name="{{ form.camera_model.html_name }}" value="{{ exif_info.camera_model }}">
+                    </div>
+
+                    <!-- ISO字段 -->
+                    <div class="mb-3">
+                        <label for="id_iso" class="form-label">ISO</label>
+                        <input type="text" class="form-control" id="id_iso" name="iso" value="{{ exif_info.iso|default:work.iso }}">
+                    </div>
+
+                    <!-- 快门速度字段 -->
+                    <div class="mb-3">
+                        <label for="id_shutter_speed" class="form-label">快门速度</label>
+                        <input type="text" class="form-control" id="id_shutter_speed" name="shutter_speed" value="{{ exif_info.shutter_speed|default:work.shutter_speed }}">
+                    </div>
+
+                    <!-- 光圈字段 -->
+                    <div class="mb-3">
+                        <label for="id_aperture" class="form-label">光圈</label>
+                        <input type="text" class="form-control" id="id_aperture" name="aperture" value="{{ exif_info.aperture|default:work.aperture }}">
+                    </div>
+
+                    <!-- 焦段字段 -->
+                    <div class="mb-3">
+                        <label for="id_lens_mm" class="form-label">焦段</label>
+                        <input type="text" class="form-control" id="id_lens_mm" name="lens_mm" value="{{ exif_info.lens_mm|default:work.lens_mm }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">作品分类</label>
+                        <div class="row">
+                            {% for category in categories %}
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="categories" value="{{ category.id }}" id="cat_{{ category.id }}" {% if category.id in selected_categories %}checked{% endif %}>
+                                    <label class="form-check-label" for="cat_{{ category.id }}">
+                                        {{ category.name }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_public }}
+                            <label class="form-check-label" for="{{ form.is_public.id_for_label }}">
+                                公开显示此作品
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                         <button type="submit" class="btn btn-primary">保存修改</button>
+                        <a href="{% url 'works:work_detail' work.id %}" class="btn btn-outline-secondary">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('id_image');
+    const imagePreview = document.getElementById('image-preview');
+    const exifStatus = document.getElementById('exif-status');
+    const form = document.querySelector('form');
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    // 获取所有表单字段
+    const shotDateInput = document.getElementById('id_shot_date');
+    const cameraModelInput = document.getElementById('id_camera_model');
+    const isoInput = document.getElementById('id_iso');
+    const shutterSpeedInput = document.getElementById('id_shutter_speed');
+    const apertureInput = document.getElementById('id_aperture');
+    const lensMMInput = document.getElementById('id_lens_mm');
+
+    // 已有图片预览
+    if (imagePreview && imagePreview.querySelector('img')) {
+        updateExifStatus('已加载现有图片', 'success');
+    }
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        updateExifStatus('正在处理图片...', 'muted');
+        resetFormFields();
+
+        // 显示图片预览
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreview.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = '预览图';
+            img.className = 'img-thumbnail';
+            img.style.maxWidth = '300px';
+            imagePreview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+
+        // 发送AJAX请求获取EXIF信息
+        fetchExifData(file);
+    });
+
+    // 表单提交处理
+    form.addEventListener('submit', function(e) {
+        // 禁用提交按钮防止重复提交
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 保存中...';
+    });
+
+    // 获取EXIF数据
+    function fetchExifData(file) {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        // 获取CSRF令牌
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch('{% url 'works:get_exif_info' %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP错误，状态码: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                updateExifStatus('EXIF信息已提取', 'success');
+                fillFormFields(data);
+            } else {
+                updateExifStatus(`EXIF提取失败: ${data.error || '未知错误'}`, 'danger');
+            }
+        })
+        .catch(error => {
+            updateExifStatus(`请求失败: ${error.message}`, 'danger');
+        });
+    }
+
+    // 重置表单字段
+    function resetFormFields() {
+        shotDateInput.value = '';
+        cameraModelInput.value = '';
+        isoInput.value = '';
+        shutterSpeedInput.value = '';
+        apertureInput.value = '';
+        lensMMInput.value = '';
+    }
+
+    // 填充表单字段
+    function fillFormFields(data) {
+        if (data.shot_date) shotDateInput.value = data.shot_date;
+        if (data.camera_model) cameraModelInput.value = data.camera_model;
+        if (data.iso) isoInput.value = data.iso;
+        if (data.shutter_speed) shutterSpeedInput.value = data.shutter_speed;
+        if (data.aperture) apertureInput.value = data.aperture;
+        if (data.lens_mm) lensMMInput.value = data.lens_mm;
+    }
+
+    // 更新EXIF状态显示
+    function updateExifStatus(message, status) {
+        if (!exifStatus) return;
+
+        exifStatus.textContent = message;
+
+        // 移除所有状态类
+        exifStatus.className = 'mt-2';
+
+        // 添加新的状态类
+        switch(status) {
+            case 'success':
+                exifStatus.classList.add('text-success');
+                break;
+            case 'danger':
+                exifStatus.classList.add('text-danger');
+                break;
+            case 'muted':
+                exifStatus.classList.add('text-muted');
+                break;
+        }
+    }
+});
+</script>
+{% endblock %}

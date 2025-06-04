@@ -96,11 +96,16 @@ def work_edit(request, pk):
     :return: POST请求且表单有效: 重定向到作品详情页 其他情况: 渲染编辑表单页面
     """
     work = get_object_or_404(Work, id=pk, photographer=request.user)
+    if not work.id:
+        messages.error(request,"作品ID为空或不存在，无法编辑。")
+        return redirect('works:work_list')
     exif_info = {
         'shot_date': work.shot_date,
         'camera_model': work.camera_model,
         'image_preview': work.image.url if work.image else None
     }
+
+
 
     if request.method == 'POST':
         form = WorkForm(request.POST, request.FILES, instance=work)
@@ -139,7 +144,8 @@ def work_edit(request, pk):
         'form': form,
         'categories': categories,
         'selected_categories': selected_categories,
-        'exif_info': exif_info
+        'exif_info': exif_info,
+        'work':work
     })
 
 
