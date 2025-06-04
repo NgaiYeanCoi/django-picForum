@@ -1,6 +1,6 @@
 # django-picForum
 ## 介绍
-django-picForum 是一个基于 Django 框架开发的摄影作品论坛
+django-picForum 是一个基于 Django 框架开发的摄影作品论坛  
 该项目还在建设当中，欢迎你们提交Pull Request或Issues与我一起维护这个项目
 
 ## 已经实现的功能
