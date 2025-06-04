@@ -1,9 +1,7 @@
 # work/views.py
-import base64
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import json
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -40,9 +38,13 @@ def work_upload(request):
             work = form.save(commit=False)
             work.photographer = request.user
 
-            # 从表单数据中获取EXIF信息（已在前端提取）
+            # 从表单数据中获取EXIF信息
             work.shot_date = request.POST.get('shot_date')
             work.camera_model = request.POST.get('camera_model')
+            work.iso= request.POST.get('iso')
+            work.shutter_speed = request.POST.get('shutter_speed')
+            work.lens_mm = request.POST.get('lens_mm')
+            work.aperture = request.POST.get('aperture')
 
             work.save()
 

@@ -26,8 +26,24 @@
                     <p>{{ work.shot_date|default:"未知日期" }}</p>
                 </div>
                 <div class="mt-3">
-                    <h5>相机：</h5>
+                    <h5>相机型号：</h5>
                     <p>{{ work.camera_model|default:"未知型号" }}</p>
+                </div>
+                <div class="mt-3">
+                    <h5>ISO：</h5>
+                    <p>{{ work.iso|default:"未知iso" }}</p>
+                </div>
+                <div class="mt-3">
+                    <h5>快门速度：</h5>
+                    <p>{{ work.shutter_speed|default:"未知快门速度" }}</p>
+                </div>
+                <div class="mt-3">
+                    <h5>光圈：</h5>
+                    <p>{{ work.aperture|default:"未知光圈" }}</p>
+                </div>
+                <div class="mt-3">
+                    <h5>焦段：</h5>
+                    <p>{{ work.lens_mm|default:"未知焦段" }}</p>
                 </div>
                 <div class="mt-3">
                     <h5>作品分类：</h5>

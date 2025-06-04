@@ -52,15 +52,17 @@ class WorkForm(forms.ModelForm):
         """验证快门速度格式"""
         value = self.cleaned_data.get('shutter_speed')
         if value:
-            # 允许格式如：1/125, 1/250, 1/500, 1/1000, 1/2000, 1/4000等
+            # 允许格式如：允许 1/125 格式或 1/125s 格式
             import re
-            if not re.match(r'^1\/\d+$', value):
-                raise forms.ValidationError("请输入有效的快门速度格式，如：1/125")
+            if not re.match(r'^(1/)?\d+(\.\d+)?\s?s?$', value):
+                raise forms.ValidationError("请输入有效的快门速度格式，如：1/125或1/125s")
         return value
 
     def clean_aperture(self):
         """验证光圈值范围"""
         value = self.cleaned_data.get('aperture')
-        if value and (value < 1.0 or value > 32.0):
-            raise forms.ValidationError("光圈值必须在1.0-32.0之间")
+        if value:
+            import re
+            if not re.match(r'^f/?\d+(\.\d+)?$', value):
+                raise forms.ValidationError("请输入有效的光圈格式格式，如：2.8或f2.8")
         return value
