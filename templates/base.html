@@ -39,7 +39,8 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'works:work_upload' %}">上传作品</a>
                     </li>
-                        {% if user.username == 'root'%}<!--判断是否为root用户-->
+                        <!--判断是否为超级用户用户-->
+                        {% if user.is_superuser%}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'admin:index' %}">管理后台</a>
                     </li>
@@ -89,7 +90,7 @@
     <!-- 尾部 -->
     <footer class="bg-dark text-white mt-5 py-4">
         <div class="container text-center">
-            <p>© 2025 BaiyunUPicForum | 版权所有
+            <p>© 2025 BaiyunUPicForum |<a href="https://github.com/NgaiYeanCoi/" class="text-white">@NgaiYeanCoi</a>版权所有
                 {{ goToGithub|safe }}
             </p>
         </div>
