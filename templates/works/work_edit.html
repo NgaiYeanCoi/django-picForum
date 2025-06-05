@@ -42,8 +42,9 @@
 
                     <div class="mb-3">
                         <label for="{{ form.image.id_for_label }}" class="form-label">作品图片:</label>
+                    {{ form.image }}
                     <!--手动渲染控件-->
-                    <input type="file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}"
+                    {% comment %}<input type="file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}"
                     class="form-control {% if form.image.errors %}is-invalid{% endif %}"
                      {% if form.image.field.required %}required{% endif %}>
                     <!-- 显示表单错误 -->
@@ -51,7 +52,7 @@
                             <div class="invalid-feedback">
                                 {{ form.image.errors|join:", " }}
                             </div>
-                        {% endif %}
+                        {% endif %}{% endcomment %}
                         <div class="form-text">支持JPG、PNG格式，最大50MB</div>
 
                         <!-- 图片预览区域 -->
