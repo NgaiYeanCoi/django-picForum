@@ -5,7 +5,7 @@ from . import views
 app_name = 'works'
 
 urlpatterns = [
-    path('', views.work_list, name='work_list'),  # 作品列表页
+    path('', views.work_list, name='work_list'),  # 登录后跳转到作品列表页
     path('upload/', views.work_upload, name='work_upload'),  # 作品上传页
     path('detail/<int:pk>/', views.work_detail, name='work_detail'),  # 作品详情页
     path('edit/<int:pk>/', views.work_edit, name='work_edit'),  # 作品编辑页

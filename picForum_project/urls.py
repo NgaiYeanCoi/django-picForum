@@ -3,17 +3,20 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
+from django.contrib.auth.views import PasswordChangeView
 from accounts.views import register  # 导入注册视图
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('works/', include('works.urls')),
     path('shares/', include('shares.urls')),
-    path('', include('works.urls')),  # 根路径指向作品应用
+    path('', include('works.urls')),  # 根路径指向works应用
 
     # 认证URL
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/register/', register, name='register'),
+    path('accounts/password_change',PasswordChangeView.as_view(template_name='registration/password_change.html'),name='password_change'),
+
 ]
 
 # 开发环境中处理媒体文件
