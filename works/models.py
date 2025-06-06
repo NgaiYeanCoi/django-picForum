@@ -31,6 +31,7 @@ def get_upload_path(instance, filename):
 
 class Work(models.Model):
     title = models.CharField('作品标题', max_length=100, blank=False, null=False)
+    views = models.PositiveIntegerField('浏览量', default=0)
     description = models.TextField('作品描述', blank=True)
     image = models.ImageField('作品图片', upload_to=get_upload_path) #ImageField会自动验证上传的文件是否为有效图像
     photographer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='摄影师')

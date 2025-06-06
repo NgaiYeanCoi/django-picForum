@@ -1,0 +1,79 @@
+<!-- templates/index.html-->
+{% extends 'base.html' %}
+
+{% block title %}BaiyunUPicForum首页{% endblock %}
+{% block content %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2>热门作品</h2>
+        </div>
+    <!-- 搜索区 -->
+    <div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="row">
+                    <div class="col-md-6">
+                        <form method="get" class="d-flex">
+                            <input type="text" name="search" placeholder="搜索作品..." class="form-control me-2" value="{{ search_query }}">
+                            <button type="submit" class="btn btn-primary flex-shrink-0">搜索</button>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                按分类筛选
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
+                                <li><a class="dropdown-item" href="{% url 'works:work_list' %}">全部作品</a></li>
+                                {% for category in categories %}
+                                <li><a class="dropdown-item" href="{% url 'works:work_list_by_category' category.id %}">{{ category.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- 热门作品展示 -->
+        {% for work in popular_works %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="watermark">
+                        <img src="{{ work.image.url }}" class="card-img-top" alt="{{ work.title }}" style="height: 250px; object-fit: cover;">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ work.title|default:"未命名作品" }}</h5>
+                        <p class="card-text text-truncate">{{ work.description|default:"无描述" }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted">
+                                <small>{{ work.shot_date|default:"未知日期" }}</small>
+                            </div>
+                            <div>
+                                <a href="{% url 'works:work_detail' work.id %}" class="btn btn-sm btn-outline-primary">查看</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- 用户统计信息 -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">社区统计信息</h5>
+                    <p class="card-text">注册用户数量：{{ user_count }}</p>
+                    <p class="card-text">上传作品总数：{{ work_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}

@@ -11,7 +11,23 @@ from .forms import WorkForm
 import exifread
 from PIL import Image, ImageDraw, ImageFont
 from django.conf import settings
+from django.contrib.auth.models import User
 import os
+
+def index(request):
+    # 获取热门作品
+    popular_works = Work.objects.order_by('-views')[:3]  # 假设根据浏览量排序，取前3个作品
+    # 获取注册用户数量
+    user_count = User.objects.count()
+    # 获取上传作品总数
+    work_count = Work.objects.count()
+
+    context = {
+        'popular_works': popular_works,
+        'user_count': user_count,
+        'work_count': work_count,
+    }
+    return render(request, 'index.html', context)
 
 
 @login_required

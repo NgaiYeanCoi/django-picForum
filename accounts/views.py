@@ -5,6 +5,8 @@ from django.shortcuts import render
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
 
 def register(request):
     if request.method == 'POST':
@@ -17,4 +19,5 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
 
