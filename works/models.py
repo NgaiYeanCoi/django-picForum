@@ -3,7 +3,7 @@ import os
 
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.utils import timezone
 
 class Category(models.Model):
     name = models.CharField('分类名称', max_length=50)
@@ -17,16 +17,27 @@ class Category(models.Model):
         verbose_name = '作品分类'
         verbose_name_plural = '作品分类'
 
+def get_upload_path(instance, filename):
+    username = instance.photographer.username if instance.photographer else 'unknown'
+    now = timezone.now()
+    return os.path.join(
+        username,
+        'works',
+        str(now.year),
+        str(now.month),
+        str(now.day),
+        filename
+    )
 
 class Work(models.Model):
     title = models.CharField('作品标题', max_length=100, blank=False, null=False)
     description = models.TextField('作品描述', blank=True)
-    image = models.ImageField('作品图片', upload_to='works/%Y/%m/%d')
+    image = models.ImageField('作品图片', upload_to=get_upload_path) #ImageField会自动验证上传的文件是否为有效图像
     photographer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='摄影师')
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
     shot_date = models.DateField('拍摄日期', blank=True, null=True)
-    camera_model = models.CharField('相机型号', max_length=100, blank=True)
+    camera_model = models.CharField('相机型号', max_length=100, blank=True, null=True)
     is_public = models.BooleanField('公开显示', default=False)
     iso = models.IntegerField('ISO值', blank=True, null=True)
     shutter_speed = models.CharField('快门速度', max_length=50, blank=True, null=True)
