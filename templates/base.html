@@ -30,6 +30,9 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                        <a class="nav-link" href="{% url 'index' %}">首页</a>
+                    </li>
                 <!--未登录不显示-->
                     {% if user.is_authenticated %}
                     <li class="nav-item">

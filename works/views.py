@@ -15,18 +15,27 @@ from django.contrib.auth.models import User
 import os
 
 def index(request):
-    # 获取热门作品
-    popular_works = Work.objects.order_by('-views')[:3]  # 假设根据浏览量排序，取前3个作品
-    # 获取注册用户数量
+    # 搜索功能
+    search_query = request.GET.get('search', '')
+    if search_query:
+        popular_works = Work.objects.filter(
+            is_public=True,
+            title__icontains=search_query
+        ).order_by('-views')[:3]
+    else:
+        popular_works = Work.objects.filter(is_public=True).order_by('-views')[:3] # 筛选公开的热门作品（按浏览量排序）
+
+    # 获取统计信息
     user_count = User.objects.count()
-    # 获取上传作品总数
-    work_count = Work.objects.count()
+    work_count = Work.objects.filter(is_public=True).count() # 只统计公开作品
 
     context = {
         'popular_works': popular_works,
         'user_count': user_count,
         'work_count': work_count,
+        'search_query': search_query
     }
+
     return render(request, 'index.html', context)
 
 
