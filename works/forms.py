@@ -34,17 +34,27 @@ class WorkForm(forms.ModelForm):
             'lens_mm': '单位：毫米(mm)',
         }
 
-        # 设置widgets
+        # 设置widgets - 控制表单字段在HTML中的呈现方式
         widgets = {
+            # 作品标题：文本输入框-应用Bootstrap的form-control样式
             'title': forms.TextInput(attrs={'class': 'form-control'}),
+            # 作品描述：多行文本域-设置3行高度
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            # 作品图片：文件上传控件
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            # 拍摄日期：HTML5日期选择器
             'shot_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            # 相机型号：普通文本输入框
             'camera_model': forms.TextInput(attrs={'class': 'form-control'}),
+            # ISO值：数字输入框，限制最小值和最大值
             'iso': forms.NumberInput(attrs={'class': 'form-control', 'min': 50, 'max': 102400}),
+            # 快门速度：普通文本输入框
             'shutter_speed': forms.TextInput(attrs={'class': 'form-control'}),
+            # 光圈值：数字输入框-最小1.0，最大32.0，步进0.1
             'aperture': forms.NumberInput(attrs={'class': 'form-control', 'min': 1.0, 'max': 32.0, 'step': 0.1}),
+            # 焦段：数字输入框-最小1，最大1000
             'lens_mm': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 1000}),
+            # 公开显示：复选框控件
             'is_public': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
