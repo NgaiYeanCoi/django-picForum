@@ -22,8 +22,9 @@ def index(request):
             is_public=True,
             title__icontains=search_query
         ).order_by('-views')[:3]
+        #TODO:实现浏览量
     else:
-        popular_works = Work.objects.filter(is_public=True).order_by('-views')[:3] # 筛选公开的热门作品（按浏览量排序）
+        popular_works = Work.objects.filter(is_public=True).order_by('-views') # 筛选公开的热门作品（按浏览量排序暂时没实现）
 
     # 获取统计信息
     user_count = User.objects.count()
@@ -121,6 +122,8 @@ def work_edit(request, pk):
     :return: POST请求且表单有效: 重定向到作品详情页 其他情况: 渲染编辑表单页面
     """
     work = get_object_or_404(Work, id=pk, photographer=request.user)
+    if request.user != work.photographer and not request.user.is_superuser:
+        return redirect('works:works_detail', pk=pk)
     if not work.id:
         messages.error(request,"作品ID为空或不存在，无法编辑。")
         return redirect('works:work_list')
