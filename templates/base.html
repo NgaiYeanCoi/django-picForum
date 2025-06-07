@@ -50,45 +50,43 @@
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
-                    <li class="nav-item dropdown">
-                        {% if not user.is_superuser %}
-                            <!--TODO:让用户修改个人信息-->
-                        {% comment %}<a class="nav-link" href="#">{{ user.username }}</a>{% endcomment %}
-                            <a class="nav-link dropdown-toggle" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ user.username }}</a>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                            <li>
-                                {% csrf_token %}
-                                <a class="dropdown-item" href="{% url 'password_change' %}">修改密码</a>
-                            </li>
-                            <li>
-                                <form method="post" action="{% url 'logout' %}">
-                                    {% csrf_token %}
-                                    <button class="dropdown-item" type="submit">登出</button>
-                                </form>
-                            </li>
-                            </ul>
+                        {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            {% if not user.is_superuser %}
+                                <a class="nav-link dropdown-toggle" id="dropdownMenuLink" role="button" 
+                                   data-bs-toggle="dropdown" aria-expanded="false">{{ user.username }}</a>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'password_change' %}">修改密码</a>
+                                    </li>
+                                    <li>
+                                        <form method="post" action="{% url 'logout' %}">
+                                            {% csrf_token %}
+                                            <button class="dropdown-item" type="submit">登出</button>
+                                        </form>
+                                    </li>
+                                </ul>
                             {% else %}
-                            <a class="nav-link" href="{% url 'admin:index' %}">{{ user.username }}</a>
-                                <li class="nav-item">
-                                <form method="post" action="{% url 'logout' %}">
-                                        {% csrf_token %}
-                                        <button type="submit" class="nav-link bg-transparent border-0 text-white">
-                                            退出登录
-                                        </button>
-                                    </form>
-                                </li>
+                                <a class="nav-link" href="{% url 'admin:index' %}">{{ user.username }}</a>
                             {% endif %}
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">登录</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}">注册</a>
-                    </li>
-                    {% endif %}
-                </ul>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link bg-transparent border-0 text-white">
+                                    退出登录
+                                </button>
+                            </form>
+                        </li>
+                        {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">登录</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">注册</a>
+                        </li>
+                        {% endif %}
+                    </ul>
             </div>
         </div>
     </nav>
@@ -97,10 +95,17 @@
     <!-- 消息提示 -->
     {% if messages %}
         {% for message in messages %}
+            {% if message.tags == 'error' %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% else %}
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+            {% endif %}
         {% endfor %}
     {% endif %}
 

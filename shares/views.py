@@ -1,13 +1,14 @@
-from datetime import datetime
+# shares\views.py
+from lib2to3.fixes.fix_input import context
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponseForbidden, Http404
+from django.http import Http404
 from .models import ShareLink
 from works.models import Work
 import hashlib
-from django.conf import settings
+from django.utils import timezone
 
 def share_detail(request, share_code):
     """分享链接详情视图"""
@@ -24,14 +25,10 @@ def share_detail(request, share_code):
         if share_link.password:
             if 'share_password' not in request.session or request.session['share_password'] != share_link.password:
                 return redirect('shares:share_password', share_code=share_code)
-        
-        # 检查权限：公开作品或创建者本人
-        if not work.is_public and request.user != share_link.created_by:
-            return HttpResponseForbidden("无访问权限！")
-        
+
         # 记录访问
         share_link.accessed_count += 1
-        share_link.last_accessed_at = datetime.now()
+        share_link.last_accessed_at = timezone.now()
         share_link.save()
         
         return render(request, 'shares/share_detail.html', {'work': work, 'share_link': share_link})
@@ -55,15 +52,26 @@ def create_share_link(request, work_id):
             expires_days=expires_days,
             password=password if password else None
         )
-        
+
+        # 生成完整的分享链接
+        share_url = share_link.generate_share_url(request)
+
         messages.success(request, "分享链接创建成功！")
-        return render(request, 'shares/share_created.html', {'share_link': share_link})
+        context = {
+            'share_link': share_link,
+            'share_url': share_url,
+            'password': password,
+            'work': work
+        }
+        return render(request, 'shares/share_created.html', context)
     
     return render(request, 'shares/create_share.html', {'work': work})
 
 def share_password(request, share_code):
     """分享密码验证视图"""
     share_link = get_object_or_404(ShareLink, share_code=share_code)
+    # 生成完整的分享链接
+    share_url = share_link.generate_share_url(request)
     
     if request.method == 'POST':
         entered_password = request.POST.get('password', '')
@@ -75,5 +83,23 @@ def share_password(request, share_code):
             return redirect('shares:share_detail', share_code=share_code)
         else:
             messages.error(request, "密码错误！")
-    
-    return render(request, 'shares/share_password.html', {'share_link': share_link})    
+    context ={
+            'share_link': share_link,
+            'share_url': share_url
+    }
+    return render(request, 'shares/share_password.html', context)
+
+
+@login_required
+def cancel_share(request, share_code):
+    """取消分享链接视图"""
+    share_link = get_object_or_404(ShareLink, share_code=share_code)
+
+    # 检查当前用户是否是分享链接的创建者
+    if request.user != share_link.created_by and not request.user.is_superuser:
+        messages.error(request, "你没有权限取消这个分享链接！")
+    else:
+        share_link.delete()
+        messages.success(request, "提示:分享链接已取消！")
+
+    return redirect('works:work_list')

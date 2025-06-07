@@ -65,7 +65,12 @@
                             <div>
                                 <a href="{% url 'works:work_detail' work.id %}" class="btn btn-sm btn-outline-primary">查看</a>
                                 <a href="{% url 'works:work_edit' work.id %}" class="btn btn-sm btn-outline-danger">编辑</a>
-                                <a href="{% url 'shares:create_share' work.id %}" class="btn btn-sm btn-outline-success">分享</a>
+                                {% if work.sharelink_set.exists %}
+                                    <a href="{% url 'shares:cancel_share' work.sharelink_set.first.share_code %}" class="btn btn-sm btn-outline-warning">取消分享</a>
+                                {% else %}
+                                    <a href="{% url 'shares:create_share' work.id %}" class="btn btn-sm btn-outline-success">分享</a>
+                                {% endif %}
+                            
                             </div>
                         </div>
                     </div>

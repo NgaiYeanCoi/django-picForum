@@ -67,8 +67,12 @@
                     {% else %}
                     <a href="{% url 'index' %}" class="btn btn-outline-secondary">返回</a>
                 {% endif %}
-                
-                <a href="{% url 'shares:create_share' work.id %}" class="btn btn-outline-success">分享</a>
+
+            {% if work.sharelink_set.exists %}
+             <a href="{% url 'shares:cancel_share' work.sharelink_set.first.share_code %}" class="btn btn-outline-warning">取消分享</a>
+                {% elif request.user == work.photographer or request.user.is_superuser  %}
+              <a href="{% url 'shares:create_share' work.id %}" class="btn btn-outline-success">分享</a>
+               {% endif %}
             </div>
         </div>
     </div>

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from works.models import Work
 import uuid
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 class ShareLink(models.Model):
     """分享链接模型"""
@@ -24,7 +25,7 @@ class ShareLink(models.Model):
 
     def is_expired(self):
         """检查链接是否过期"""
-        return self.expires_at and datetime.now() > self.expires_at
+        return self.expires_at and timezone.now() > self.expires_at
 
     def generate_share_url(self, request):
         """生成完整分享URL"""
@@ -34,7 +35,7 @@ class ShareLink(models.Model):
     @classmethod
     def create_share_link(cls, work, user, expires_days=7, password=None):
         """创建分享链接的快捷方法"""
-        expires_at = datetime.now() + timedelta(days=expires_days) if expires_days else None
+        expires_at = timezone.now() + timezone.timedelta(days=expires_days) if expires_days else None
         
         # 如果有密码，进行哈希处理
         if password:
