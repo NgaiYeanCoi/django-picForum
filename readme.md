@@ -72,6 +72,7 @@ DATABASES = {
 }
 ```
 #### 5.创建数据库
+
 - 1. 手动建数据库
 ```mysql
 # photographer_portfolio可以自定义，但必须与picForum_project/settings.py保持一致
