@@ -106,10 +106,15 @@ def work_upload(request):
         'exif_info': exif_info
     })
 
-@login_required
 def work_detail(request, pk):
     """作品详情视图"""
-    work = get_object_or_404(Work, id=pk, photographer=request.user)
+    # 先筛选出ID匹配的作品
+    queryset = Work.objects.filter(id=pk)
+    # 若当前用户不是作品的摄影师，则只显示公开作品
+    if request.user != queryset.first().photographer:
+        queryset = queryset.filter(is_public=True)
+    # 获取对象或返回404
+    work = get_object_or_404(queryset)
     return render(request, 'works/work_detail.html', {'work': work})
 
 
@@ -121,9 +126,10 @@ def work_edit(request, pk):
     :param pk:要编辑的作品主键
     :return: POST请求且表单有效: 重定向到作品详情页 其他情况: 渲染编辑表单页面
     """
-    work = get_object_or_404(Work, id=pk, photographer=request.user)
+    work = get_object_or_404(Work, id=pk)
     if request.user != work.photographer and not request.user.is_superuser:
-        return redirect('works:works_detail', pk=pk)
+        messages.error(request,"权限不足，无法编辑。")
+        return redirect('works:work_detail', pk=work.id)
     if not work.id:
         messages.error(request,"作品ID为空或不存在，无法编辑。")
         return redirect('works:work_list')
@@ -137,7 +143,7 @@ def work_edit(request, pk):
 
     if request.method == 'POST':
         form = WorkForm(request.POST, request.FILES, instance=work)
-        if form.is_valid():
+        if form.is_valid(): #判断表单是否合法
             form.save()
             # 更新分类
             WorkCategory.objects.filter(work=work).delete()
@@ -186,7 +192,10 @@ def work_delete(request, pk):
                 GET请求: 重定向到作品详情页
     """
     # 查询指定主键且属于当前用户的作品对象，不存在则返回404
-    work = get_object_or_404(Work, id=pk, photographer=request.user)
+    work = get_object_or_404(Work, id=pk)
+    if request.user != work.photographer and not request.user.is_superuser:
+        messages.error(request,"权限不足，无法删除。")
+        return redirect('works:work_detail', pk=work.id)
     if request.method == 'POST':
         # 处理确认删除的POST请求
 

@@ -59,10 +59,14 @@
                 </div>
             </div>
             <div class="card-footer">
+                {%  if request.user == work.photographer or request.user.is_superuser %}
                 <a href="{% url 'works:work_edit' work.id %}" class="btn btn-outline-secondary">编辑</a>
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
                     删除
                 </button>
+                    {% else %}
+                    <a href="{% url 'index' %}" class="btn btn-outline-secondary">返回</a>
+                {% endif %}
                 
                 <a href="{% url 'shares:create_share' work.id %}" class="btn btn-outline-success">分享</a>
             </div>
