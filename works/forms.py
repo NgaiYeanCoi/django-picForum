@@ -58,6 +58,8 @@ class WorkForm(forms.ModelForm):
             'is_public': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+    '''
+    #感觉验证来没啥用还影响用户体验？？
     def clean_shutter_speed(self):
         """验证快门速度格式"""
         value = self.cleaned_data.get('shutter_speed')
@@ -76,3 +78,4 @@ class WorkForm(forms.ModelForm):
             if not re.match(r'^f/?\d+(\.\d+)?$', value):
                 raise forms.ValidationError("请输入有效的光圈格式格式，如：2.8或f2.8")
         return value
+    '''

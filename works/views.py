@@ -63,7 +63,8 @@ def work_upload(request):
         'camera_model': None,
         'image_preview': None  # 图片预览路径
     }
-    form = WorkForm()
+    initial = {'is_public': True}
+    form = WorkForm(initial=initial)
 
     if request.method == 'POST':
         form = WorkForm(request.POST, request.FILES)
@@ -71,19 +72,14 @@ def work_upload(request):
             work = form.save(commit=False)
             work.photographer = request.user
 
-            # 从表单数据中获取EXIF信息
-            work.shot_date = request.POST.get('shot_date')
-            work.camera_model = request.POST.get('camera_model')
-            work.iso= request.POST.get('iso')
-            work.shutter_speed = request.POST.get('shutter_speed')
-            work.lens_mm = request.POST.get('lens_mm')
-            work.aperture = request.POST.get('aperture')
-
+            # 从表单数据中获取EXIF信息,并从cleaned_data获取已验证的数据
+            work.shot_date = form.cleaned_data.get('shot_date')
+            work.camera_model = form.cleaned_data.get('camera_model')
+            work.iso = form.cleaned_data.get('iso')
+            work.shutter_speed = form.cleaned_data.get('shutter_speed')
+            work.lens_mm = form.cleaned_data.get('lens_mm')
+            work.aperture = form.cleaned_data.get('aperture')
             work.save()
-
-            # 处理分类
-            category_ids = request.POST.getlist('categories')
-            work.categories.set(category_ids)
 
             # 生成缩略图
             try:

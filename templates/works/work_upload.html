@@ -111,7 +111,7 @@
 
                     <div class="mb-3">
                         <div class="form-check">
-                            {{ form.is_public }}
+                            {{ form.is_public | default:"checked" }}
                             <label class="form-check-label" for="{{ form.is_public.id_for_label }}">
                                 公开显示此作品
                             </label>

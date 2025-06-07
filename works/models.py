@@ -68,4 +68,4 @@ class WorkCategory(models.Model):
     class Meta:
         verbose_name = '作品分类关联'
         verbose_name_plural = '作品分类关联'
-        db_table = 'works_workcategory'  # 明确指定表名
+        db_table = 'works_workcategory'  # 指定表名
