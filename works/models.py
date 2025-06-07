@@ -19,6 +19,8 @@ class Category(models.Model):
 
 def get_upload_path(instance, filename):
     username = instance.photographer.username if instance.photographer else 'unknown'
+    # TODO:改写一下包含作品title
+    # title = instance.work.title if instance.work else ''
     now = timezone.now()
     return os.path.join(
         username,
@@ -26,6 +28,7 @@ def get_upload_path(instance, filename):
         str(now.year),
         str(now.month),
         str(now.day),
+        # title,
         filename
     )
 
