@@ -13,6 +13,20 @@ from PIL import Image, ImageDraw, ImageFont
 from django.conf import settings
 from django.contrib.auth.models import User
 import os
+from django.core.paginator import Paginator
+
+def page_nav(queryset, page_number, per_page=6):
+    """
+    查询集进行分页处理
+    :param queryset: 查询集对象
+    :param page_number: 当前请求的页码
+    :param per_page: 每页显示的对象数量（默认为6）
+    :return:    返回一个 Page 对象
+    """
+    paginator = Paginator(queryset, per_page)
+    page_obj = paginator.get_page(page_number)
+    return page_obj
+
 
 def index(request):
     # 搜索功能
@@ -21,19 +35,26 @@ def index(request):
         popular_works = Work.objects.filter(
             is_public=True,
             title__icontains=search_query
-        ).order_by('-views')[:3]
+        ).order_by('created_at')
         #TODO:实现浏览量
     else:
-        popular_works = Work.objects.filter(is_public=True).order_by('-views') # 筛选公开的热门作品（按浏览量排序暂时没实现）
+        popular_works = Work.objects.filter(is_public=True).order_by('created_at') # TODO:筛选公开的热门作品（按浏览量排序暂时没实现）
 
     # 获取统计信息
     user_count = User.objects.count()
-    work_count = Work.objects.filter(is_public=True).count() # 只统计公开作品
+    work_public_count = Work.objects.filter(is_public=True).count() # 只统计公开作品
+    work_count= Work.objects.count()
+
+    # 分页
+    page_number = request.GET.get('page')
+    page_obj = page_nav(popular_works, page_number)
 
     context = {
         'popular_works': popular_works,
         'user_count': user_count,
+        'work_public_count': work_public_count,
         'work_count': work_count,
+        'page_obj': page_obj,
         'search_query': search_query
     }
 
@@ -52,7 +73,18 @@ def work_list(request):
     else:
         works = Work.objects.filter(photographer=request.user).order_by('-created_at')
     categories = Category.objects.all()
-    return render(request, 'works/work_list.html', {'works': works, 'categories': categories,'search_query':search_query})
+
+    # 分页
+    page_number = request.GET.get('page')
+    page_obj = page_nav(works, page_number)
+
+    context = {
+        'works': works,
+        'categories': categories,
+        'page_obj': page_obj,
+        'search_query': search_query
+    }
+    return render(request, 'works/work_list.html', context)
 
 
 @login_required
@@ -200,7 +232,6 @@ def work_delete(request, pk):
             # 检查作品是否有图片且文件存在于文件系统中
             if work.image and os.path.exists(work.image.path):
                 os.remove(work.image.path)  # 删除物理图片文件
-            # 可以添加删除缩略图的逻辑
         except Exception as e:
             print(f"文件删除失败: {e}")
 

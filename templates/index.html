@@ -29,10 +29,10 @@
             </div>
         </div>
 
-        <!-- 热门作品展示区 -->
+        <!-- 热门作品展示区（还没实现先放着先 :p） -->
         <div class="row">
-            {% if popular_works %}
-                {% for work in popular_works %}
+            {% if page_obj %}
+                {% for work in page_obj %}
                     <div class="col-md-4 mb-4">
                         <div class="card h-100">
                             <div class="watermark position-relative">
@@ -82,6 +82,47 @@
                 </div>
             {% endif %}
         </div>
+    <!-- 分页导航 -->
+         <!-- 分页导航 -->
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&search={{ search_query }}" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><a class="page-link" href="?page={{ num }}&search={{ search_query }}">{{ num }}</a></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}&search={{ search_query }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{ search_query }}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
 
         <!-- 用户统计信息 -->
         <div class="row mb-4 mt-6">
@@ -94,7 +135,10 @@
                                 <p class="card-text"><i class="bi bi-people-fill"></i> 注册用户数量：{{ user_count }}</p>
                             </div>
                             <div class="col-md-6">
-                                <p class="card-text"><i class="bi bi-image-fill"></i> 上传作品总数(仅公开)：{{ work_count }}</p>
+                                <p class="card-text"><i class="bi bi-image-fill"></i> 上传作品总数(仅公开)：{{ work_public_count }}</p>
+                            </div>
+                             <div class="col-md-6">
+                                <p class="card-text"><i class="bi bi-image-fill"></i> 上传作品总数(含不公开)：{{ work_count }}</p>
                             </div>
                         </div>
                     </div>
