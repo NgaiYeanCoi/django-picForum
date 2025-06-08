@@ -38,7 +38,7 @@
                     <div class="col-md-4 mb-4">
                         <div class="card h-100">
                             <div class="watermark">
-                                <img src="{{ work.image.url }}" class="card-img-top" alt="{{ work.title }}" style="height: 250px; object-fit: cover;">
+                                <img data-src="{{ work.image.url }}" src="{{ work.image.url }}" class="card-img-top lazyload" alt="{{ work.title }}" style="height: 250px; object-fit: cover;">
                             </div>
                             <div class="card-body">
                                 <h5 class="card-title">{{ work.title|default:"未命名作品" }}</h5>
