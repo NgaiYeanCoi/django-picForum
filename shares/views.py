@@ -42,7 +42,7 @@ def create_share_link(request, work_id):
     work = get_object_or_404(Work, id=work_id, photographer=request.user)
     
     if request.method == 'POST':
-        expires_days = int(request.POST.get('expires_days', 7))
+        expires_days = int(request.POST.get('expires_days', 7)) #默认7天
         password = request.POST.get('password', '')
         
         # 创建分享链接

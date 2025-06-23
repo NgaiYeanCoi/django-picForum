@@ -1,5 +1,5 @@
 pillow~=11.2.1
-Django~=5.2.1
+Django~=5.2.3
 asgiref~=3.8.1
 sqlparse~=0.5.3
 mysqlclient~=2.2.7

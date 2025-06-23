@@ -1,6 +1,7 @@
 # works/models.py
 import os
 
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -34,7 +35,7 @@ def get_upload_path(instance, filename):
 
 class Work(models.Model):
     title = models.CharField('作品标题', max_length=100, blank=False, null=False)
-    views = models.PositiveIntegerField('浏览量', default=0)
+    #views = models.PositiveIntegerField('浏览量', default=0)
     description = models.TextField('作品描述', blank=True)
     image = models.ImageField('作品图片', upload_to=get_upload_path) #ImageField会自动验证上传的文件是否为有效图像
     photographer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='摄影师')
@@ -43,7 +44,7 @@ class Work(models.Model):
     shot_date = models.DateField('拍摄日期', blank=True, null=True)
     camera_model = models.CharField('相机型号', max_length=100, blank=True, null=True)
     is_public = models.BooleanField('公开显示', default=False)
-    iso = models.IntegerField('ISO值', blank=True, null=True)
+    iso = models.IntegerField('ISO值', blank=True, null=True,validators=[MinValueValidator(0)])
     shutter_speed = models.CharField('快门速度', max_length=50, blank=True, null=True)
     aperture = models.CharField('光圈值', max_length=10, blank=True, null=True)
     lens_mm = models.CharField('焦距(mm)', max_length=10,blank=True, null=True)

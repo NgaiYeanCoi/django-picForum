@@ -127,28 +127,29 @@
         </div>
     </div>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const imageInput = document.getElementById('id_image');
-    const imagePreview = document.getElementById('image-preview');
-    const exifStatus = document.getElementById('exif-status');
-    const form = document.querySelector('form');
-    const submitButton = form.querySelector('button[type="submit"]');
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+$(document).ready(function() {
+    const $imageInput = $('#id_image');
+    const $imagePreview = $('#image-preview');
+    const $exifStatus = $('#exif-status');
+    const $form = $('form');
+    const $submitButton = $form.find('button[type="submit"]');
 
     // 获取所有表单字段
-    const shotDateInput = document.getElementById('id_shot_date');
-    const cameraModelInput = document.getElementById('id_camera_model');
-    const isoInput = document.getElementById('id_iso');
-    const shutterSpeedInput = document.getElementById('id_shutter_speed');
-    const apertureInput = document.getElementById('id_aperture');
-    const lensMMInput = document.getElementById('id_lens_mm');
+    const $shotDateInput = $('#id_shot_date');
+    const $cameraModelInput = $('#id_camera_model');
+    const $isoInput = $('#id_iso');
+    const $shutterSpeedInput = $('#id_shutter_speed');
+    const $apertureInput = $('#id_aperture');
+    const $lensMMInput = $('#id_lens_mm');
 
     // 已有图片预览
-    if (imagePreview && imagePreview.querySelector('img')) {
+    if ($imagePreview.find('img').length) {
         updateExifStatus('已加载现有图片', 'success');
     }
 
-    imageInput.addEventListener('change', function(e) {
+    $imageInput.on('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -158,13 +159,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // 显示图片预览
         const reader = new FileReader();
         reader.onload = function(e) {
-            imagePreview.innerHTML = '';
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.alt = '预览图';
-            img.className = 'img-thumbnail';
-            img.style.maxWidth = '300px';
-            imagePreview.appendChild(img);
+            $imagePreview.empty();
+            $('<img>', {
+                src: e.target.result,
+                alt: '预览图',
+                class: 'img-thumbnail',
+                style: 'max-width: 300px'
+            }).appendTo($imagePreview);
         };
         reader.readAsDataURL(file);
 
@@ -173,10 +174,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 表单提交处理
-    form.addEventListener('submit', function(e) {
+    $form.on('submit', function() {
         // 禁用提交按钮防止重复提交
-        submitButton.disabled = true;
-        submitButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 上传中...';
+        $submitButton.prop('disabled', true);
+        $submitButton.html('<i class="fa fa-spinner fa-spin mr-2"></i> 保存中...');
     });
 
     // 获取EXIF数据
@@ -185,76 +186,73 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('image', file);
 
         // 获取CSRF令牌
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrftoken = $('[name=csrfmiddlewaretoken]').val();
 
-        fetch('{% url 'works:get_exif_info' %}', {
+        $.ajax({
+            url: '{% url 'works:get_exif_info' %}',
             method: 'POST',
-            body: formData,
+            data: formData,
+            processData: false,
+            contentType: false,
             headers: {
                 'X-CSRFToken': csrftoken
+            },
+            success: function(data) {
+                if (data.success) {
+                    updateExifStatus('EXIF信息已提取', 'success');
+                    fillFormFields(data);
+                } else {
+                    updateExifStatus(`EXIF提取失败: ${data.error || '未知错误'}`, 'danger');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                updateExifStatus(`请求失败: ${errorThrown}`, 'danger');
             }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP错误，状态码: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                updateExifStatus('EXIF信息已提取', 'success');
-                fillFormFields(data);
-            } else {
-                updateExifStatus(`EXIF提取失败: ${data.error || '未知错误'}`, 'danger');
-            }
-        })
-        .catch(error => {
-            updateExifStatus(`请求失败: ${error.message}`, 'danger');
         });
     }
 
     // 重置表单字段
     function resetFormFields() {
-        shotDateInput.value = '';
-        cameraModelInput.value = '';
-        isoInput.value = '';
-        shutterSpeedInput.value = '';
-        apertureInput.value = '';
-        lensMMInput.value = '';
+        $shotDateInput.val('');
+        $cameraModelInput.val('');
+        $isoInput.val('');
+        $shutterSpeedInput.val('');
+        $apertureInput.val('');
+        $lensMMInput.val('');
     }
 
     // 填充表单字段
     function fillFormFields(data) {
-        if (data.shot_date) shotDateInput.value = data.shot_date;
-        if (data.camera_model) cameraModelInput.value = data.camera_model;
-        if (data.iso) isoInput.value = data.iso;
-        if (data.shutter_speed) shutterSpeedInput.value = data.shutter_speed;
-        if (data.aperture) apertureInput.value = data.aperture;
-        if (data.lens_mm) lensMMInput.value = data.lens_mm;
+        if (data.shot_date) $shotDateInput.val(data.shot_date);
+        if (data.camera_model) $cameraModelInput.val(data.camera_model);
+        if (data.iso) $isoInput.val(data.iso);
+        if (data.shutter_speed) $shutterSpeedInput.val(data.shutter_speed);
+        if (data.aperture) $apertureInput.val(data.aperture);
+        if (data.lens_mm) $lensMMInput.val(data.lens_mm);
     }
 
     // 更新EXIF状态显示
     function updateExifStatus(message, status) {
-        if (!exifStatus) return;
+        if (!$exifStatus.length) return;
 
-        exifStatus.textContent = message;
+        $exifStatus.text(message);
 
         // 移除所有状态类
-        exifStatus.className = 'mt-2';
+        $exifStatus.attr('class', 'mt-2');
 
         // 添加新的状态类
         switch(status) {
             case 'success':
-                exifStatus.classList.add('text-success');
+                $exifStatus.addClass('text-success');
                 break;
             case 'danger':
-                exifStatus.classList.add('text-danger');
+                $exifStatus.addClass('text-danger');
                 break;
             case 'muted':
-                exifStatus.classList.add('text-muted');
+                $exifStatus.addClass('text-muted');
                 break;
         }
     }
 });
-</script>
+    </script>
 {% endblock %}

@@ -1,14 +1,16 @@
-from django.db import models
-from django.contrib.auth.models import User
-from works.models import Work
 import uuid
-from datetime import datetime, timedelta
+
+from django.contrib.auth.models import User
+from django.db import models
 from django.utils import timezone
+
+from works.models import Work
+
 
 class ShareLink(models.Model):
     """分享链接模型"""
     work = models.ForeignKey(Work, on_delete=models.CASCADE, verbose_name='作品')
-    share_code = models.CharField('分享码', max_length=32, unique=True, default=uuid.uuid4().hex[:32])
+    share_code = models.CharField('分享码', max_length=32, unique=True, default=uuid.uuid4().hex[:32]) #生成uuid
     password = models.CharField('访问密码', max_length=128, blank=True, null=True)
     expires_at = models.DateTimeField('过期时间', blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='创建者')

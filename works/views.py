@@ -39,6 +39,8 @@ def index(request):
         #TODO:实现浏览量
     else:
         popular_works = Work.objects.filter(is_public=True).order_by('created_at') # TODO:筛选公开的热门作品（按浏览量排序暂时没实现）
+        if request.user.is_superuser:
+            popular_works = Work.objects.all().order_by('created_at')
 
     # 获取统计信息
     user_count = User.objects.count()
@@ -71,6 +73,8 @@ def work_list(request):
             title__icontains=search_query
         ).order_by('-created_at')
     else:
+        #print(request.user); 调试用
+        #works = Work.objects.filter(photographer=7).order_by('-created_at') #调试
         works = Work.objects.filter(photographer=request.user).order_by('-created_at')
     categories = Category.objects.all()
 
@@ -138,8 +142,8 @@ def work_detail(request, pk):
     """作品详情视图"""
     # 先筛选出ID匹配的作品
     queryset = Work.objects.filter(id=pk)
-    # 若当前用户不是作品的摄影师，则只显示公开作品
-    if request.user != queryset.first().photographer:
+    # 若当前用户不是作品的摄影师或管理员，则只能访问公开作品的详情页
+    if request.user != queryset.first().photographer and not request.user.is_superuser:
         queryset = queryset.filter(is_public=True)
     # 获取对象或返回404
     work = get_object_or_404(queryset)
@@ -217,7 +221,7 @@ def work_delete(request, pk):
     :param request: HTTP请求的对象
     :param pk: 要删除作品的主键
     :return:POST请求: 重定向到作品列表页
-                GET请求: 重定向到作品详情页
+            GET请求: 重定向到作品详情页
     """
     # 查询指定主键且属于当前用户的作品对象，不存在则返回404
     work = get_object_or_404(Work, id=pk)
