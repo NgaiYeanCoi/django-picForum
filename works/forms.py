@@ -22,6 +22,7 @@ class WorkForm(forms.ModelForm):
             'aperture': '光圈值',
             'focal_length': '焦距(mm)',
             'is_public': '公开显示',
+            'views': '浏览量',
         }
 
         # 设置帮助文本
@@ -56,6 +57,8 @@ class WorkForm(forms.ModelForm):
             'lens_mm': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 1000}),
             # 公开显示：复选框控件
             'is_public': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            # 浏览量：数字输入框，限制最小值0
+            'views': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
         }
 
     '''

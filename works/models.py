@@ -1,6 +1,5 @@
 # works/models.py
 import os
-
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
@@ -35,7 +34,6 @@ def get_upload_path(instance, filename):
 
 class Work(models.Model):
     title = models.CharField('作品标题', max_length=100, blank=False, null=False)
-    #views = models.PositiveIntegerField('浏览量', default=0)
     description = models.TextField('作品描述', blank=True)
     image = models.ImageField('作品图片', upload_to=get_upload_path) #ImageField会自动验证上传的文件是否为有效图像
     photographer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='摄影师')
@@ -44,10 +42,12 @@ class Work(models.Model):
     shot_date = models.DateField('拍摄日期', blank=True, null=True)
     camera_model = models.CharField('相机型号', max_length=100, blank=True, null=True)
     is_public = models.BooleanField('公开显示', default=False)
+    views = models.PositiveIntegerField('浏览量', editable=False, default=0)
     iso = models.IntegerField('ISO值', blank=True, null=True,validators=[MinValueValidator(0)])
     shutter_speed = models.CharField('快门速度', max_length=50, blank=True, null=True)
     aperture = models.CharField('光圈值', max_length=10, blank=True, null=True)
     lens_mm = models.CharField('焦距(mm)', max_length=10,blank=True, null=True)
+    likes = models.PositiveIntegerField('点赞数', editable=False, default=0)
 
     # 多对多关系，明确指定through模型
     categories = models.ManyToManyField(Category, through='WorkCategory', verbose_name='作品分类')
@@ -73,3 +73,13 @@ class WorkCategory(models.Model):
         verbose_name = '作品分类关联'
         verbose_name_plural = '作品分类关联'
         db_table = 'works_workcategory'  # 指定表名
+
+
+class WorkLike(models.Model):
+    work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name='like_records')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='work_like_records')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('work', 'user')
+        db_table = 'works_worklike'

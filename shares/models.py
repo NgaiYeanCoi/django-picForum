@@ -36,7 +36,15 @@ class ShareLink(models.Model):
 
     @classmethod
     def create_share_link(cls, work, user, expires_days=7, password=None):
-        """创建分享链接的快捷方法"""
+        """
+        创建分享链接的快捷方法
+        :param work: 请求的作品
+        :param user: 请求的用户
+        :param expires_days: 过期天数默认为7
+        :param password: 密码默认为空
+        :return: share_link分享链接
+        """
+
         expires_at = timezone.now() + timezone.timedelta(days=expires_days) if expires_days else None
         
         # 如果有密码，进行哈希处理

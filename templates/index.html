@@ -15,45 +15,64 @@
             </div>
         </div>
 
-        <!-- 搜索 -->
+        <!-- 搜索与筛选 -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <form method="get" class="d-flex">
-                                    <label>
-                                        <input type="text" name="search" placeholder="搜索作品..." class="form-control me-2" value="{{ search_query|default:'' }}">
-                                    </label>
-                                    <button type="submit" class="btn btn-primary flex-shrink-0">搜索</button>
-                                </form>
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <form method="get" class="row g-3 align-items-center">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                                    <input type="text" name="search" class="form-control border-start-0 ps-0 shadow-none" placeholder="搜索作品..." value="{{ search_query|default:'' }}">
+                                </div>
                             </div>
-                        </div>
+                            <div class="col-md-4">
+                                <select name="sort" class="form-select shadow-none" onchange="this.form.submit()">
+                                    <option value="time_desc" {% if current_sort == 'time_desc' %}selected{% endif %}>最新发布</option>
+                                    <option value="time_asc" {% if current_sort == 'time_asc' %}selected{% endif %}>最早发布</option>
+                                    <option value="like_desc" {% if current_sort == 'like_desc' %}selected{% endif %}>点赞数最多</option>
+                                    <option value="view_desc" {% if current_sort == 'view_desc' %}selected{% endif %}>观看数最多</option>
+                                </select>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 热门作品展示区（还没实现先放着先 :p） -->
-        <div class="row">
+        <!-- 作品展示区 -->
+        <div class="row g-4" id="works-container">
             {% if page_obj %}
                 {% for work in page_obj %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100">
-                            <div class="watermark">
-                                <img data-src="{{ work.image.url }}" src="{{ work.image.url }}" class="card-img-top lazyload" alt="{{ work.title }}" style="height: 250px; object-fit: cover;">
+                    <div class="col-md-4 col-sm-6" data-work-id="{{ work.id }}">
+                        <div class="card h-100 shadow-sm border-0 hover-card transition-all">
+                            <div class="watermark position-relative overflow-hidden rounded-top">
+                                <!-- 链接覆盖整个卡片图片区域 -->
+                                <a href="{% url 'works:work_detail' work.id %}" class="stretched-link z-index-0"></a>
+                                <img data-src="{{ work.image.url }}" src="{{ work.image.url }}" class="card-img-top lazyload transition-transform" alt="{{ work.title }}" style="height: 250px; object-fit: cover;">
+                                
+                                <div class="position-absolute bottom-0 start-0 w-100 p-2 bg-gradient-dark text-white d-flex justify-content-between align-items-center opacity-75 pointer-events-none">
+                                    <small class="text-truncate px-2"><i class="fa-solid fa-user me-1"></i>{{ work.photographer.username }}</small>
+                                    <small class="px-2">{{ work.created_at|date:"Y年m月d日"|default:"未知日期" }}</small>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <h5 class="card-title">{{ work.title|default:"未命名作品" }}</h5>
-                                <p class="card-text text-truncate">{{ work.description|default:"无描述" }}</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="text-muted">
-                                        <small>{{ work.shot_date|default:"未知日期" }}</small>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title text-truncate mb-1" title="{{ work.title }}">{{ work.title|default:"未命名作品" }}</h5>
+                                <p class="card-text text-muted small text-truncate mb-3">{{ work.description|default:"暂无描述" }}</p>
+                                
+                                <div class="mt-auto d-flex justify-content-between align-items-center text-muted">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="d-flex align-items-center" title="浏览量">
+                                            <i class="fa-solid fa-eye me-1"></i>
+                                            <span id="work-views-{{ work.id }}" class="stats-value">{{ work.views }}</span>
+                                        </span>
+                                        <span class="d-flex align-items-center" title="点赞数">
+                                            <i class="fa-solid fa-heart me-1 text-danger"></i>
+                                            <span id="work-likes-{{ work.id }}" class="stats-value">{{ work.likes }}</span>
+                                        </span>
                                     </div>
-                                    <div>
-                                        <a href="{% url 'works:work_detail' work.id %}" class="btn btn-sm btn-outline-primary">查看</a>
-                                    </div>
+                                    <a href="{% url 'works:work_detail' work.id %}" class="btn btn-sm btn-outline-primary px-3 position-relative" style="z-index: 2;">查看</a>
                                 </div>
                             </div>
                         </div>
@@ -85,18 +104,18 @@
             {% endif %}
         </div>
     
-         <!-- 分页导航 -->
+        <!-- 分页导航 -->
         {% if page_obj.has_other_pages %}
-            <nav aria-label="Page navigation">
+            <nav aria-label="Page navigation" class="mt-5">
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1&search={{ search_query }}" aria-label="First">
+                            <a class="page-link shadow-none" href="?page=1&search={{ search_query }}&sort={{ current_sort }}" aria-label="First">
                                 <span aria-hidden="true">&laquo;&laquo;</span>
                             </a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}" aria-label="Previous">
+                            <a class="page-link shadow-none" href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&sort={{ current_sort }}" aria-label="Previous">
                                 <span aria-hidden="true">&laquo;</span>
                             </a>
                         </li>
@@ -104,20 +123,20 @@
 
                     {% for num in page_obj.paginator.page_range %}
                         {% if page_obj.number == num %}
-                            <li class="page-item active"><a class="page-link" href="?page={{ num }}&search={{ search_query }}">{{ num }}</a></li>
+                            <li class="page-item active"><a class="page-link shadow-none" href="?page={{ num }}&search={{ search_query }}&sort={{ current_sort }}">{{ num }}</a></li>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item"><a class="page-link" href="?page={{ num }}&search={{ search_query }}">{{ num }}</a></li>
+                            <li class="page-item"><a class="page-link shadow-none" href="?page={{ num }}&search={{ search_query }}&sort={{ current_sort }}">{{ num }}</a></li>
                         {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}" aria-label="Next">
+                            <a class="page-link shadow-none" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&sort={{ current_sort }}" aria-label="Next">
                                 <span aria-hidden="true">&raquo;</span>
                             </a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{ search_query }}" aria-label="Last">
+                            <a class="page-link shadow-none" href="?page={{ page_obj.paginator.num_pages }}&search={{ search_query }}&sort={{ current_sort }}" aria-label="Last">
                                 <span aria-hidden="true">&raquo;&raquo;</span>
                             </a>
                         </li>
@@ -127,20 +146,32 @@
         {% endif %}
 
         <!-- 用户统计信息 -->
-        <div class="row mb-4 mt-6">
+        <div class="row mb-4 mt-5">
             <div class="col-md-12">
-                <div class="card">
+                <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        <h5 class="card-title">社区统计信息</h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p class="card-text"><i class="bi bi-people-fill"></i> 注册用户数量：{{ user_count }}</p>
+                        <h5 class="card-title mb-4 border-bottom pb-2">社区统计信息</h5>
+                        <div class="row text-center">
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <div class="p-3 bg-light rounded">
+                                    <i class="bi bi-people-fill text-primary fs-2 mb-2"></i>
+                                    <h3 class="fw-bold">{{ user_count }}</h3>
+                                    <p class="text-muted mb-0">注册用户</p>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <p class="card-text"><i class="bi bi-image-fill"></i> 上传作品总数(仅公开)：{{ work_public_count }}</p>
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <div class="p-3 bg-light rounded">
+                                    <i class="bi bi-image-fill text-success fs-2 mb-2"></i>
+                                    <h3 class="fw-bold">{{ work_public_count }}</h3>
+                                    <p class="text-muted mb-0">公开作品</p>
+                                </div>
                             </div>
-                             <div class="col-md-6">
-                                <p class="card-text"><i class="bi bi-image-fill"></i> 上传作品总数(含不公开)：{{ work_count }}</p>
+                             <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <i class="bi bi-layers-fill text-info fs-2 mb-2"></i>
+                                    <h3 class="fw-bold">{{ work_count }}</h3>
+                                    <p class="text-muted mb-0">总作品数</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -148,4 +179,88 @@
             </div>
         </div>
     </div>
+
+<style>
+    /* 卡片悬停效果 */
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    
+    /* 图片放大效果 */
+    .transition-transform {
+        transition: transform 0.5s ease;
+    }
+    .hover-card:hover .transition-transform {
+        transform: scale(1.05);
+    }
+
+    /* 渐变背景 */
+    .bg-gradient-dark {
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+    }
+
+    /* 禁止指针事件 */
+    .pointer-events-none {
+        pointer-events: none;
+    }
+    
+    /* 统计数值动画 */
+    .stats-value {
+        transition: color 0.3s ease;
+    }
+    .stats-updated {
+        animation: pulse 1s;
+        color: #0d6efd;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 收集所有作品ID
+    const workElements = document.querySelectorAll('[data-work-id]');
+    if (workElements.length === 0) return;
+
+    const workIds = Array.from(workElements).map(el => el.dataset.workId);
+    
+    // 定期轮询更新统计数据 (每5秒)
+    setInterval(updateStats, 5000);
+
+    function updateStats() {
+        if (document.hidden) return; // 页面不可见时不轮询
+
+        fetch(`{% url 'works:get_works_stats' %}?ids=${workIds.join(',')}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                for (const [id, stats] of Object.entries(data)) {
+                    updateElement(`work-views-${id}`, stats.views);
+                    updateElement(`work-likes-${id}`, stats.likes);
+                }
+            })
+            .catch(error => console.error('Error updating stats:', error));
+    }
+
+    function updateElement(elementId, newValue) {
+        const element = document.getElementById(elementId);
+        if (element && element.textContent != newValue) {
+            element.textContent = newValue;
+            // 添加更新动画效果
+            element.classList.add('stats-updated');
+            setTimeout(() => element.classList.remove('stats-updated'), 1000);
+        }
+    }
+});
+</script>
 {% endblock %}

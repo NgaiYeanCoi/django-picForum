@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
 # work/views.py
 
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Work, Category, WorkCategory
+from .models import Work, Category, WorkCategory, WorkLike
 from .forms import WorkForm
 import exifread
 from PIL import Image, ImageDraw, ImageFont
@@ -14,6 +16,8 @@ from django.conf import settings
 from django.contrib.auth.models import User
 import os
 from django.core.paginator import Paginator
+from django.db.models import F
+
 
 def page_nav(queryset, page_number, per_page=6):
     """
@@ -29,18 +33,36 @@ def page_nav(queryset, page_number, per_page=6):
 
 
 def index(request):
-    # 搜索功能
+    # 搜索和筛选功能
     search_query = request.GET.get('search', '')
-    if search_query:
-        popular_works = Work.objects.filter(
-            is_public=True,
-            title__icontains=search_query
-        ).order_by('created_at')
-        #TODO:实现浏览量
+    sort_option = request.GET.get('sort', 'time_desc')
+
+    # 基础查询集
+    if request.user.is_superuser:
+        # 超级用户可以看到所有作品（但在搜索模式下原始逻辑限制了公开，这里我们稍微优化一下，保持一致性，假设超级用户在主页也看公开的，或者按需调整）
+        # 原逻辑：搜索时只看公开，不搜索时看所有。为了逻辑统一，我们让超级用户在无搜索时看所有，有搜索时也看所有（更合理）
+        # 但为了最小化变更风险，遵循原逻辑：
+        # 原逻辑搜索：Work.objects.filter(is_public=True, title__icontains=search_query)
+        # 原逻辑非搜索：Work.objects.all() if superuser else Work.objects.filter(is_public=True)
+        
+        if search_query:
+             queryset = Work.objects.filter(is_public=True, title__icontains=search_query)
+        else:
+             queryset = Work.objects.all()
     else:
-        popular_works = Work.objects.filter(is_public=True).order_by('created_at') # TODO:筛选公开的热门作品（按浏览量排序暂时没实现）
-        if request.user.is_superuser:
-            popular_works = Work.objects.all().order_by('created_at')
+        queryset = Work.objects.filter(is_public=True)
+        if search_query:
+            queryset = queryset.filter(title__icontains=search_query)
+
+    # 排序逻辑
+    if sort_option == 'time_asc':
+        queryset = queryset.order_by('created_at')
+    elif sort_option == 'like_desc':
+        queryset = queryset.order_by('-likes')
+    elif sort_option == 'view_desc':
+        queryset = queryset.order_by('-views')
+    else: # time_desc 默认按发布时间降序（最新发布）
+        queryset = queryset.order_by('-created_at')
 
     # 获取统计信息
     user_count = User.objects.count()
@@ -49,18 +71,41 @@ def index(request):
 
     # 分页
     page_number = request.GET.get('page')
-    page_obj = page_nav(popular_works, page_number)
+    page_obj = page_nav(queryset, page_number)
 
     context = {
-        'popular_works': popular_works,
+        'popular_works': queryset, # 保持变量名兼容，虽然现在是分页后的 page_obj 在模板中使用
         'user_count': user_count,
         'work_public_count': work_public_count,
         'work_count': work_count,
         'page_obj': page_obj,
-        'search_query': search_query
+        'search_query': search_query,
+        'current_sort': sort_option
     }
 
     return render(request, 'index.html', context)
+
+
+def get_works_stats(request):
+    """获取作品的实时统计数据（浏览量和点赞数）"""
+    ids = request.GET.get('ids', '')
+    if not ids:
+        return JsonResponse({})
+    
+    try:
+        id_list = [int(x) for x in ids.split(',') if x.isdigit()]
+        works = Work.objects.filter(id__in=id_list)
+        
+        data = {}
+        for work in works:
+            data[work.id] = {
+                'views': work.views,
+                'likes': work.likes
+            }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
 
 
 @login_required
@@ -140,14 +185,56 @@ def work_upload(request):
 
 def work_detail(request, pk):
     """作品详情视图"""
-    # 先筛选出ID匹配的作品
-    queryset = Work.objects.filter(id=pk)
-    # 若当前用户不是作品的摄影师或管理员，则只能访问公开作品的详情页
-    if request.user != queryset.first().photographer and not request.user.is_superuser:
-        queryset = queryset.filter(is_public=True)
-    # 获取对象或返回404
-    work = get_object_or_404(queryset)
-    return render(request, 'works/work_detail.html', {'work': work})
+    work = get_object_or_404(Work, id=pk)
+
+    if request.user != work.photographer and not request.user.is_superuser:
+        if not work.is_public:
+            raise Http404("No Work matches the given query.")
+
+    Work.objects.filter(id=work.id).update(views=F('views') + 1)
+    work.refresh_from_db(fields=['views'])
+
+    is_liked = False
+    if request.user.is_authenticated:
+        is_liked = WorkLike.objects.filter(work=work, user=request.user).exists()
+
+    return render(request, 'works/work_detail.html', {
+        'work': work, 
+        'views': work.views,
+        'is_liked': is_liked
+    })
+
+
+@login_required
+@require_POST
+def toggle_like(request, pk):
+    """切换点赞状态"""
+    work = get_object_or_404(Work, id=pk)
+    user = request.user
+    
+    # 使用 select_for_update 锁定行，防止并发问题
+    # 注意：这里简化处理，实际高并发场景可能需要更复杂的逻辑
+    
+    liked = False
+    try:
+        like_record = WorkLike.objects.get(work=work, user=user)
+        like_record.delete()
+        # 更新计数
+        Work.objects.filter(id=pk).update(likes=F('likes') - 1)
+        liked = False
+    except WorkLike.DoesNotExist:
+        WorkLike.objects.create(work=work, user=user)
+        # 更新计数
+        Work.objects.filter(id=pk).update(likes=F('likes') + 1)
+        liked = True
+        
+    work.refresh_from_db(fields=['likes'])
+    
+    return JsonResponse({
+        'status': 'success',
+        'liked': liked,
+        'likes_count': work.likes
+    })
 
 
 @login_required

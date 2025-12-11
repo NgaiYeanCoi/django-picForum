@@ -1,6 +1,4 @@
 # shares\views.py
-from lib2to3.fixes.fix_input import context
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -39,7 +37,10 @@ def share_detail(request, share_code):
 @login_required
 def create_share_link(request, work_id):
     """创建分享链接视图"""
-    work = get_object_or_404(Work, id=work_id, photographer=request.user)
+    if request.user.is_superuser:
+        work = get_object_or_404(Work, id=work_id)
+    else:
+        work = get_object_or_404(Work, id=work_id, photographer=request.user)
     
     if request.method == 'POST':
         expires_days = int(request.POST.get('expires_days', 7)) #默认7天

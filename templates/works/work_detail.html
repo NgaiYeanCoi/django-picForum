@@ -3,80 +3,190 @@
 {% block title %}{{ work.title|default:"未命名作品" }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h3 class="card-title">{{ work.title|default:"未命名作品" }}</h3>
-            </div>
-            <div class="card-body">
+<div class="container mt-5 bg-light p-4 rounded">
+    <div class="row">
+        <!-- 左侧图片区 -->
+        <div class="col-md-7">
+            <div class="card shadow-sm">
                 <div class="watermark">
-                    <img data-src="{{ work.image.url }}" src="{{ work.image.url }}" class="card-img-top lazyload" alt="{{ work.title }}" style="max-width: 100%; height: auto;">
+                    <img data-src="{{ work.image.url }}" src="{{ work.image.url }}" class="card-img-top lazyload img-fluid rounded" alt="{{ work.title }}">
                 </div>
-                <div class="mt-3">
-                    <h5>摄影师：</h5>
-                    {{ work.photographer|default:"未知摄影师" }}
+            </div>
+        </div>
+
+        <!-- 右侧信息区 -->
+        <div class="col-md-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="mb-0">{{ work.title|default:"未命名作品" }}</h2>
+                <div class="text-muted">
+                    <i class="fa-solid fa-eye"></i>
+                    <span class="ms-2">{{ work.views }}</span>
                 </div>
-                <div class="mt-3">
-                    <h5>作品描述：</h5>
-                    <p>{{ work.description|default:"无描述" }}</p>
-                </div>
-                <div class="mt-3">
-                    <h5>拍摄日期：</h5>
-                    <p>{{ work.shot_date|default:"未知日期" }}</p>
-                </div>
-                <div class="mt-3">
-                    <h5>相机型号：</h5>
-                    <p>{{ work.camera_model|default:"未知型号" }}</p>
-                </div>
-                <div class="mt-3">
-                    <h5>ISO：</h5>
-                    <p>{{ work.iso|default:"未知iso" }}</p>
-                </div>
-                <div class="mt-3">
-                    <h5>快门速度：</h5>
-                    <p>{{ work.shutter_speed|default:"未知快门速度" }}</p>
-                </div>
-                <div class="mt-3">
-                    <h5>光圈：</h5>
-                    <p>{{ work.aperture|default:"未知光圈" }}</p>
-                </div>
-                <div class="mt-3">
-                    <h5>焦段：</h5>
-                    <p>{{ work.lens_mm|default:"未知焦段" }}</p>
-                </div>
-                <div class="mt-3">
-                    <h5>作品分类：</h5>
-                    <ul>
-                        {% for category in work.categories.all %}
-                            <li>{{ category.name }}</li>
-                        {% endfor %}
+            </div>
+            
+            <p class="text-muted mb-1"><strong>摄影师：</strong>{{ work.photographer|default:"未知摄影师" }}</p>
+            <p class="mb-1"><strong>分类：</strong>
+                {% for category in work.categories.all %}
+                    <span class="badge bg-info text-dark">{{ category.name }}</span>
+                {% empty %}
+                    <span class="text-muted">无分类</span>
+                {% endfor %}
+            </p>
+            <p class="mb-1"><strong>上传日期：</strong>{{ work.created_at|date:"Y年m月d日"|default:"未知日期" }}</p>
+            <p class="mb-3"><strong>拍摄日期：</strong>{{ work.shot_date|default:"未知日期" }}</p>
+
+            <div class="mt-4">
+                <h4>作品描述</h4>
+                <p class="text-secondary">{{ work.description|default:"无描述" }}</p>
+            </div>
+
+            <!-- EXIF 专业数据卡片 -->
+            <div class="mt-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">EXIF 信息</span>
+                        <span class="badge bg-secondary">专业参数</span>
+                    </div>
+                    <ul class="list-group list-group-flush bg-transparent">
+                        <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <span>相机型号</span>
+                            <span class="fw-bold">{{ work.camera_model|default:"-" }}</span>
+                        </li>
+                        <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <span>镜头焦段</span>
+                            <span class="fw-bold">{{ work.lens_mm|default:"-" }}</span>
+                        </li>
+                        <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <span>光圈</span>
+                            <span class="fw-bold">{{ work.aperture|default:"-" }}</span>
+                        </li>
+                        <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <span>快门速度</span>
+                            <span class="fw-bold">{{ work.shutter_speed|default:"-" }}</span>
+                        </li>
+                        <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <span>ISO</span>
+                            <span class="fw-bold">{{ work.iso|default:"-" }}</span>
+                        </li>
                     </ul>
                 </div>
-                <div class="mt-3">
-                    <h5>公开状态：</h5>
-                    <p>{% if work.is_public %}公开显示{% else %}不公开显示{% endif %}</p>
+            </div>
+
+            <!-- 操作按钮区 -->
+        <div class="justify-content-between align-items-center mb-3 d-flex">
+            <div class="mt-4 d-grid gap-2 d-md-block ">
+                {% if request.user == work.photographer or request.user.is_superuser %}
+                    <a href="{% url 'works:work_edit' work.id %}" class="btn btn-outline-primary me-2">编辑</a>
+                    <button type="button" class="btn btn-outline-danger me-2" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                        删除
+                    </button>
+                    {% if work.sharelink_set.exists %}
+                        <a href="{% url 'shares:cancel_share' work.sharelink_set.first.share_code %}" class="btn btn-outline-warning me-2">取消分享</a>
+                    {% else %}
+                        <a href="{% url 'shares:create_share' work.id %}" class="btn btn-outline-success me-2">分享</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'index' %}" class="btn btn-outline-secondary">返回首页</a>
+                {% endif %}
+            </div>
+            
+            <!-- 点赞功能区 -->
+            <div class="mt-3 d-flex align-items-center ">
+                <div id="like-btn" data-url="{% url 'works:toggle_like' work.id %}" class="d-flex align-items-center cursor-pointer like-wrapper">
+                    <span id="like-icon-container">
+                        <i class="{% if is_liked %}fa-solid{% else %}fa-regular{% endif %} fa-heart text-danger fs-4 like-icon"></i>
+                    </span>
+                    <span id="likes-count" class="ms-2 fs-5">{{ work.likes }}</span>
                 </div>
             </div>
-            <div class="card-footer">
-                {%  if request.user == work.photographer or request.user.is_superuser %}
-                <a href="{% url 'works:work_edit' work.id %}" class="btn btn-outline-secondary">编辑</a>
-                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
-                    删除
-                </button>
-                    {% else %}
-                    <a href="{% url 'index' %}" class="btn btn-outline-secondary">返回</a>
-                {% endif %}
-
-            {% if work.sharelink_set.exists %}
-             <a href="{% url 'shares:cancel_share' work.sharelink_set.first.share_code %}" class="btn btn-outline-warning">取消分享</a>
-                {% elif request.user == work.photographer or request.user.is_superuser  %}
-              <a href="{% url 'shares:create_share' work.id %}" class="btn btn-outline-success">分享</a>
-               {% endif %}
             </div>
+            
+            {% if request.user == work.photographer or request.user.is_superuser %}
+            <div class="mt-3 text-muted small">
+                 <p>公开状态：{% if work.is_public %}公开{% else %}私有{% endif %}</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
+
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .like-icon {
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .like-wrapper:active .like-icon {
+        transform: scale(0.8);
+    }
+    .like-wrapper:hover .like-icon {
+        transform: scale(1.1);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const likeBtn = document.getElementById('like-btn');
+    if (!likeBtn) return;
+
+    const iconContainer = document.getElementById('like-icon-container');
+    const countSpan = document.getElementById('likes-count');
+    let isProcessing = false;
+
+    likeBtn.addEventListener('click', function() {
+        if (isProcessing) return;
+        isProcessing = true;
+        
+        // 简单的点击反馈动画
+        if (iconContainer) {
+            iconContainer.style.transform = 'scale(1.4)';
+            setTimeout(() => iconContainer.style.transform = '', 200);
+        }
+
+        fetch(this.dataset.url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.status === 403 || response.status === 401) {
+                window.location.href = "{% url 'login' %}?next={{ request.path }}";
+                throw new Error('Need login');
+            }
+            if (response.redirected) {
+                window.location.href = response.url;
+                throw new Error('Redirected to login');
+            }
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                 window.location.href = "{% url 'login' %}?next={{ request.path }}";
+                 throw new Error('Not JSON response');
+            }
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                if (iconContainer) {
+                    const iconClass = data.liked ? 'fa-solid' : 'fa-regular';
+                    iconContainer.innerHTML = `<i class="${iconClass} fa-heart text-danger fs-4 like-icon"></i>`;
+                }
+                countSpan.textContent = data.likes_count;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            isProcessing = false;
+        });
+    });
+});
+</script>
+
     <!-- 删除确认模态框 -->
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
