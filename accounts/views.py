@@ -40,16 +40,4 @@ class RememberLoginView(LoginView):
             self.request.session.set_expiry(settings.SESSION_COOKIE_AGE)
         return response
 
-class RememberLoginView(LoginView):
-    template_name = 'registration/login.html'
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        remember = self.request.POST.get('remember_me')
-        if not remember:
-            self.request.session.set_expiry(0)
-        else:
-            self.request.session.set_expiry(settings.SESSION_COOKIE_AGE)
-        return response
-
 

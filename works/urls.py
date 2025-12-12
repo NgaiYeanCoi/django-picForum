@@ -14,4 +14,4 @@ urlpatterns = [
     path('category/<int:category_id>/', views.work_list_by_category, name='work_list_by_category'),  # 分类作品列表
     path('get-exif-info/', views.get_exif_info, name='get_exif_info'),
     path('api/stats/', views.get_works_stats, name='get_works_stats'),
-]    
+]
